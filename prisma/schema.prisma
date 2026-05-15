@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum SmsCodePurpose {
+  REGISTER
+  LOGIN
+  RESET_PASSWORD
+}
+
+enum AnalysisStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum NewsStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum PostStatus {
+  PUBLISHED
+  HIDDEN
+  DELETED
+}
+
+model User {
+  id               String             @id @default(cuid())
+  phone            String             @unique
+  nickname         String?
+  avatarUrl        String?
+  bio              String?
+  status           UserStatus         @default(ACTIVE)
+  lastLoginAt      DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  analysisRecords  AnalysisRecord[]
+  loginSessions    LoginSession[]
+  posts            Post[]
+  comments         PostComment[]
+  smsCodes         SmsCode[]
+}
+
+model SmsCode {
+  id         String         @id @default(cuid())
+  phone      String
+  purpose    SmsCodePurpose
+  code       String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime       @default(now())
+  userId     String?
+  user       User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([phone, purpose, createdAt])
+}
+
+model LoginSession {
+  id           String   @id @default(cuid())
+  token        String   @unique
+  deviceName   String?
+  ipAddress    String?
+  userAgent    String?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  lastUsedAt   DateTime @default(now())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+model AnalysisRecord {
+  id             String         @id @default(cuid())
+  ticker         String
+  companyName    String?
+  reportTitle    String?
+  reportBody     Json?
+  sourceSnapshot Json?
+  status         AnalysisStatus @default(PENDING)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  userId         String
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([ticker, createdAt])
+}
+
+model NewsItem {
+  id            String     @id @default(cuid())
+  title         String
+  summary       String?
+  sourceName    String
+  sourceUrl     String     @unique
+  coverImageUrl String?
+  publishedAt   DateTime?
+  fetchedAt     DateTime?
+  status        NewsStatus @default(DRAFT)
+  tags          String[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([status, publishedAt])
+}
+
+model Post {
+  id         String        @id @default(cuid())
+  title      String
+  content    String
+  status     PostStatus    @default(PUBLISHED)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  userId     String
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments   PostComment[]
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
+model PostComment {
+  id         String     @id @default(cuid())
+  content    String
+  status     PostStatus @default(PUBLISHED)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  postId     String
+  userId     String
+  post       Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+  @@index([userId, createdAt])
+}
