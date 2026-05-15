@@ -32,6 +32,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+.mysql-data/
+.mysql-run/
+/public/uploads/
 
 # vercel
 .vercel

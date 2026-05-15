@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
 }
 
 enum UserStatus {
@@ -39,6 +39,7 @@ enum PostStatus {
 model User {
   id               String             @id @default(cuid())
   phone            String             @unique
+  passwordHash     String
   nickname         String?
   avatarUrl        String?
   bio              String?
@@ -109,7 +110,7 @@ model NewsItem {
   publishedAt   DateTime?
   fetchedAt     DateTime?
   status        NewsStatus @default(DRAFT)
-  tags          String[]
+  tags          Json
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 

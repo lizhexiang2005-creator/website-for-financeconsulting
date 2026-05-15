@@ -7,12 +7,18 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "db:start": "./scripts/start-local-mysql.sh",
+    "db:stop": "./scripts/stop-local-mysql.sh",
+    "db:setup": "./scripts/setup-local-mysql.sh",
     "prisma:generate": "prisma generate",
-    "prisma:validate": "prisma validate"
+    "prisma:validate": "prisma validate",
+    "prisma:push": "prisma db push"
   },
   "dependencies": {
+    "@prisma/adapter-mariadb": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "lucide-react": "^1.16.0",
+    "mariadb": "^3.5.2",
     "next": "16.2.6",
     "prisma": "^7.8.0",
     "react": "19.2.4",
