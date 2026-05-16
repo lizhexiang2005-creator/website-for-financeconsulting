@@ -19,7 +19,12 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     return null;
   }
 
-  const prisma = getPrisma();
+  const prisma = safeGetPrisma();
+
+  if (!prisma) {
+    return null;
+  }
+
   const session = await prisma.loginSession.findUnique({
     where: { token },
     select: {
@@ -55,7 +60,12 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 }
 
 export async function getUserBySessionToken(token: string): Promise<CurrentUser | null> {
-  const prisma = getPrisma();
+  const prisma = safeGetPrisma();
+
+  if (!prisma) {
+    return null;
+  }
+
   const session = await prisma.loginSession.findUnique({
     where: { token },
     select: {
@@ -87,4 +97,19 @@ export async function getUserBySessionToken(token: string): Promise<CurrentUser 
   }
 
   return session.user;
+}
+
+function safeGetPrisma() {
+  try {
+    return getPrisma();
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes("DATABASE_URL is required to initialize Prisma Client.")
+    ) {
+      return null;
+    }
+
+    throw error;
+  }
 }
